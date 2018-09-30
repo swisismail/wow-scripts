@@ -20,8 +20,8 @@ function lib.TableLength(T)
 end
 function lib.map(collection,funct)
     local results = {}
-    for i, it in ipairs(collection) do
-        table.insert (results,funct(it)) 
+    for i, it in pairs(collection) do
+        results[i] = funct(it)
     end
     return results
 end
@@ -38,15 +38,15 @@ function lib.FilterBy (filterFuncts,group)
             --DEFAULT_CHAT_FRAME:AddMessage(k..(filterFunct(curTar) and 'true' or 'false'))
             
             if (UnitIsDead(curTar)==false and filterFunct(curTar)) then
-                DEFAULT_CHAT_FRAME:AddMessage(k..curTar)
-                table.insert (units,curTar) 
+                --DEFAULT_CHAT_FRAME:AddMessage(k..curTar)
+                table.insert (units,curTar)
                 
             end    
             
         end
         
         if lib.TableLength(units) >= 1 then
-            table.insert (results,units) 
+            results[k] = units
         end
         
         --DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(units))
