@@ -22,10 +22,11 @@ local function processStatsDef(statsDef,results)
     )
     
     
-    local kk = 1
+    --DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(results))
+    --local kk = 1
     for  key,value in pairs( statsDef) do
-        updateStatistic(key,results[kk])
-        kk = kk + 1
+        updateStatistic(key,results[key])
+        --kk = kk + 1
     end
 end
 
@@ -46,25 +47,25 @@ end
 local HistoricalInterval = 5
 local HistoricalStats =    {} 
 
-HistoricalStats['default'] = nil
+--HistoricalStats['default'] = nil
 HistoricalStats['deltaHp1'] =  lib.wrap(lib.deltaGt,500)
 HistoricalStats['deltaHp2'] = lib.wrap(lib.deltaGt,3000)
 --HistoricalStats['bossEtd'] = function ()
 --    return UnitHealth('boss1')/lib.DeltaUnit('boss1')/HistoricalInterval
 --end
 local LiveStats = {}
-LiveStats['default'] = nil
+--LiveStats['default'] = nil
 LiveStats['hpBelow95'] = lib.wrap(lib.hpLt, 95) 
---LiveStats['hpBelow75'] = lib.wrap(lib.hpLt,80) 
---LiveStats['hpBelow50'] = lib.wrap(lib.hpLt,60)
---LiveStats['hpBelow30'] = lib.wrap(lib.hpLt,40) 
+LiveStats['hpBelow75'] = lib.wrap(lib.hpLt,80) 
+LiveStats['hpBelow50'] = lib.wrap(lib.hpLt,60)
+LiveStats['hpBelow30'] = lib.wrap(lib.hpLt,40) 
 LiveStats['dispels'] = lib.wrap(lib.HasAura,dispellable)
 LiveStats['EOL'] = lib.wrap(lib.HasAura,getAuraNameMatcher("Echo of Light",true))
 function TMW.CNDT.Env.GatherStats()
     processStatsDef(LiveStats,results)
     if lib.Interval(1,HistoricalInterval) then
         processStatsDef(HistoricalStats,results)
-        --DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(dao.StatsCache))
+        DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(dao.StatsCache))
     end
 end 
 TMW.CNDT.Env.GatherStats()
