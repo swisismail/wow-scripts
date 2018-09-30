@@ -30,17 +30,28 @@ function lib.FilterBy (filterFuncts,group)
     
     
     for k, filterFunct in pairs(filterFuncts) do
+        
         local total = 0
         local units = {}
         for i=1, group and lib.TableLength(group) or (GetNumGroupMembers()+1) do
             local curTar = group and group[i] or lib.GetGroupUnit(i)
+            --DEFAULT_CHAT_FRAME:AddMessage(k..(filterFunct(curTar) and 'true' or 'false'))
+            
             if (UnitIsDead(curTar)==false and filterFunct(curTar)) then
+                DEFAULT_CHAT_FRAME:AddMessage(k..curTar)
                 table.insert (units,curTar) 
+                
             end    
             
         end
-        table.insert (results,units) 
+        
+        if lib.TableLength(units) >= 1 then
+            table.insert (results,units) 
+        end
+        
+        --DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(units))
     end
+    --DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(results))
     return results
 end
 function lib.wrap(funct,thd)
@@ -59,6 +70,7 @@ function lib.HasAura(curTar,matchFunct)
 end
 function lib.hpLt(curTar,thd) 
     local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
+    
     return (UnitExists(curTar) and pctHp < thd and true or false)
 end 
 function lib.deltaGt(curTar,thd)
@@ -86,4 +98,12 @@ function  lib.DeltaUnit(unit)
 end
 
 return lib
+
+
+
+
+
+
+
+
 
