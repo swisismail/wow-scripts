@@ -1,6 +1,5 @@
-local HistoricalInterval = 5
-local lib = TMW.CNDT.Env;
-local dao = TMW.CNDT.Env;
+local dao = TMW.CNDT.Env.dao;
+local lib = TMW.CNDT.Env.lib;
 
 
 local function processStatsDef(statsDef,results)
@@ -45,24 +44,21 @@ local function getAuraNameMatcher(name,bySelf)
 end
 
 
-dao.StatsCache = {}
-
-local LiveStats = {}
+local HistoricalInterval = 5
 local HistoricalStats =    {} 
-
-
-
-HistoricalStats['deltaHp1'] =  wrap(deltaGt,500)
-HistoricalStats['deltaHp2'] = wrap(deltaGt,3000)
+HistoricalStats['deltaHp1'] =  lib.wrap(deltaGt,500)
+HistoricalStats['deltaHp2'] = lib.wrap(deltaGt,3000)
 --HistoricalStats['bossEtd'] = function ()
 --    return UnitHealth('boss1')/lib.DeltaUnit('boss1')/HistoricalInterval
 --end
-LiveStats['hpBelow95'] = wrap(lib.hpLt, 95) 
-LiveStats['hpBelow75'] = wrap(lib.hpLt,80) 
-LiveStats['hpBelow50'] = wrap(lib.hpLt,60)
-LiveStats['hpBelow30'] = wrap(lib.hpLt,40) 
-LiveStats['dispels'] = wrap(lib.HasAura,dispellable)
-LiveStats['EOL'] = wrap(lib.HasAura,getAuraNameMatcher("Echo of Light",true))
+
+local LiveStats = {}
+LiveStats['hpBelow95'] = lib.wrap(lib.hpLt, 95) 
+LiveStats['hpBelow75'] = lib.wrap(lib.hpLt,80) 
+LiveStats['hpBelow50'] = lib.wrap(lib.hpLt,60)
+LiveStats['hpBelow30'] = lib.wrap(lib.hpLt,40) 
+LiveStats['dispels'] = lib.wrap(lib.HasAura,dispellable)
+LiveStats['EOL'] = lib.wrap(lib.HasAura,getAuraNameMatcher("Echo of Light",true))
 
 
 function TMW.CNDT.Env.GatherStats()
