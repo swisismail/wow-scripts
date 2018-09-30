@@ -1,6 +1,6 @@
+TMW.CNDT.Env.lib = {}
 local dao = TMW.CNDT.Env.dao;
 local lib = TMW.CNDT.Env.lib;
-
 function lib.Dump(o)
     if type(o) == 'table' then
         local s = '{ '
@@ -13,25 +13,24 @@ function lib.Dump(o)
         return tostring(o)
     end
 end
-
 function lib.TableLength(T)
     local count = 0
     for _ in pairs(T) do count = count + 1 end
     return count
 end
-
 function lib.map(collection,funct)
-      local results = {}
-     for i, it in ipairs(collection) do
-           table.insert (results,funct(it)) 
+    local results = {}
+    for i, it in ipairs(collection) do
+        table.insert (results,funct(it)) 
     end
     return results
 end
-
 function lib.FilterBy (filterFuncts,group)
     local results = {}
-    for i, filterFunct in ipairs(filterFuncts) do
-       local total = 0
+    
+    
+    for k, filterFunct in pairs(filterFuncts) do
+        local total = 0
         local units = {}
         for i=1, group and lib.TableLength(group) or (GetNumGroupMembers()+1) do
             local curTar = group and group[i] or lib.GetGroupUnit(i)
@@ -44,16 +43,12 @@ function lib.FilterBy (filterFuncts,group)
     end
     return results
 end
-
-
-local function lib.wrap(funct,thd,funct)
-    function (curtar) return funct(curtar,thd,funct) end
+function lib.wrap(funct,thd)
+    return function (curtar) return funct(curtar,thd) end
 end
-
 function lib.GetGroupUnit(i)
     return UnitExists("raid"..i) and "raid"..i or UnitExists("party"..i) and "party"..i or "player"
 end
-
 function lib.HasAura(curTar,matchFunct)
     for i=1,40 do
         if (matchFunct(UnitAura(curTar,i))) then
@@ -62,20 +57,13 @@ function lib.HasAura(curTar,matchFunct)
     end    
     return false
 end
-
-local function lib.hpLt(curTar,thd) 
+function lib.hpLt(curTar,thd) 
     local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
     return (UnitExists(curTar) and pctHp < thd and true or false)
-
 end 
-
-local function lib.deltaGt(curTar,thd)
+function lib.deltaGt(curTar,thd)
     return lib.DeltaUnit(curTar) >= thd
 end 
-
-local function lib.ge(curtar,thd,funct)
-    funct(curTar) >= thd
-end
 
 function lib.Interval(uid,seconds)
     dao.monitors[uid] = dao.monitors[uid] and dao.monitors[uid]+1 or 0
@@ -85,8 +73,6 @@ function lib.Interval(uid,seconds)
     end
     return false
 end
-
-
 function  lib.DeltaUnit(unit)
     local hp =  UnitHealth(unit)
     if (dao.uhpm[unit] == nil) then
@@ -99,5 +85,5 @@ function  lib.DeltaUnit(unit)
     return delta
 end
 
-
+return lib
 
