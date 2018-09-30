@@ -1,87 +1,79 @@
 local HistoricalInterval = 5
-
-local HistoricalStats =    {}       
-HistoricalStats['deltaHp1'] =  function() return TMW.CNDT.Env.CountDeltaHp(500) end
-HistoricalStats['deltaHp2'] = function() return TMW.CNDT.Env.CountDeltaHp(3000) end
-HistoricalStats['bossEtd'] = function ()
-    return UnitHealth('boss1')/TMW.CNDT.Env.DeltaUnit('boss1')/HistoricalInterval
-end  
+local lib = TMW.CNDT.Env;
+local dao = TMW.CNDT.Env;
 
 
-local LiveStats = {}
-
-local function getPctLtThd(thd)
-    return  function pctLtThd(curTar) 
-        local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
-        return (UnitExists(curTar) and pctHp < thd and true or false)
+local function processStatsDef(statsDef,results)
+    local function updateStatistic(statName,value)
+        if (dao.StatsCache[statName] == nil) then
+            dao.StatsCache[statName] = 0
+        end
+        
+        dao.StatsCache[statName] =  HistoricalStats[statName] and value or LiveStats[statName] and value
     end
-end 
+    
+    local results = lib.map(
+        lib.FilterBy(
+            statsDef
+            ),
+            lib.TableLength
+        )
+        
+    local kk = 0
+    for  key,value in pairs( statsDef) do
+        updateStatistic(key,results[kk])
+        kk = kk + 1
+    end
+end
 
 
     
-local function hasDispellable(curTar)
-    local function dispellable(n,_,_,debuffType ,_,_,_,isStealable)
-        if debuffType=="Magic" or debuffType=="Disease" then 
-                return true
-        end 
-        return false
-    end
-    return TMW.CNDT.Env.HasMyAura(curTar,dispellable)
-end 
-
-
-
+local function dispellable(n,_,_,debuffType ,_,_,_,isStealable)
+    if debuffType=="Magic" or debuffType=="Disease" then 
+            return true
+    end 
+    return false
+end
 
 local function getAuraNameMatcher(name,bySelf)
-    local function matchAura(name,bySelf,n,_,_,debuffType ,_,_,_,isStealable)
+    return function (n,_,_,debuffType ,_,_,_,isStealable)
         if n==name and (bySelf and unitCaster== "player" or true) then 
             return true
         end 
         return false
     end
-    return function pctLtThd(curTar) 
-        return TMW.CNDT.Env.HasMyAura(curTar,function getAura(n,_,_,debuffType ,_,_,_,isStealable) return matchAura(name,bySelf,n,_,_,debuffType ,_,_,_,isStealable) end)
-    end 
 end
 
-    
-    
 
-LiveStats['hpBelow95'] = function() return  TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(95)) end
-LiveStats['hpBelow75'] = function() return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(80))) end
-LiveStats['hpBelow50'] = function() return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(60))) end
-LiveStats['hpBelow30'] = function() return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(40))) end
-LiveStats['dispels'] = function()  return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(hasDispellable)) end
-LiveStats['EOL'] = function()  return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getAuraNameMatcher("Echo of Light",true))) end
+dao.StatsCache = {}
+
+local LiveStats = {}
+local HistoricalStats =    {} 
+
+
+
+HistoricalStats['deltaHp1'] =  wrap(deltaGt,500)
+HistoricalStats['deltaHp2'] = wrap(deltaGt,3000)
+--HistoricalStats['bossEtd'] = function ()
+--    return UnitHealth('boss1')/lib.DeltaUnit('boss1')/HistoricalInterval
+--end
+LiveStats['hpBelow95'] = wrap(lib.hpLt, 95) 
+LiveStats['hpBelow75'] = wrap(lib.hpLt,80) 
+LiveStats['hpBelow50'] = wrap(lib.hpLt,60)
+LiveStats['hpBelow30'] = wrap(lib.hpLt,40) 
+LiveStats['dispels'] = wrap(lib.HasAura,dispellable)
+LiveStats['EOL'] = wrap(lib.HasAura,getAuraNameMatcher("Echo of Light",true))
 
 
 function TMW.CNDT.Env.GatherStats()
+    processStatsDef(LiveStats,results)
     
-    local function updateStatistic(statName)
-        if (TMW.CNDT.Env.StatsCache[statName] == nil) then
-            TMW.CNDT.Env.StatsCache[statName] = 0
-        end
-        TMW.CNDT.Env.StatsCache[statName] =  HistoricalStats[statName] and HistoricalStats[statName]() or LiveStats[statName] and LiveStats[statName]()
+    if lib.Interval(1,HistoricalInterval) then
+        processStatsDef(HistoricalStats,results)
+        --DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(dao.StatsCache))
     end
-    
-    if (TMW.CNDT.Env.StatsCache == nil) then
-        TMW.CNDT.Env.StatsCache = {}    
-    end
-    
-    
-    for  key,value in pairs( LiveStats) do
-        updateStatistic(key)
-    end
-    
-    if TMW.CNDT.Env.Interval(1,HistoricalInterval) then
-        for key,value in pairs(HistoricalStats) do
-            updateStatistic(key)
-        end
-        --DEFAULT_CHAT_FRAME:AddMessage(TMW.CNDT.Env.Dump(TMW.CNDT.Env.StatsCache))
-    end
-    
-    
 end 
+
 TMW.CNDT.Env.GatherStats()
 
 
