@@ -46,8 +46,8 @@ function lib.FilterBy (filterFuncts,group)
 end
 
 
-local function lib.wrap(funct,thd)
-    function (curtar) return funct(curtar, thd) end
+local function lib.wrap(funct,thd,funct)
+    function (curtar) return funct(curtar,thd,funct) end
 end
 
 function lib.GetGroupUnit(i)
@@ -72,6 +72,10 @@ end
 local function lib.deltaGt(curTar,thd)
     return lib.DeltaUnit(curTar) >= thd
 end 
+
+local function lib.ge(curtar,thd,funct)
+    funct(curTar) >= thd
+end
 
 function lib.Interval(uid,seconds)
     dao.monitors[uid] = dao.monitors[uid] and dao.monitors[uid]+1 or 0
