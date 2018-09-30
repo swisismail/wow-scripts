@@ -45,63 +45,21 @@ function TMW.CNDT.Env.FilterBy (filterFunct,group)
     return units
 end
 
-function TMW.CNDT.Env.FilterByHp (thd) 
-    local function pctLtThd(curTar) 
-        local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
-        return (UnitExists(curTar) and pctHp < thd and true or false)
-    end 
-    
-    return  TMW.CNDT.Env.FilterBy(pctLtThd)
-end
 
 
-function TMW.CNDT.Env.CountByHp (thd)
-    
-    local function pctLtThd(curTar) 
-        local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
-        return (UnitExists(curTar) and pctHp < thd and true or false)
-    end 
-    
-    return  TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterByHp(thd))
-    
-end
-function TMW.CNDT.Env.CountByDispellable ()
-    local function hasDispellable(curTar) 
-        for i=1,20 do
-            local n,_,_,debuffType ,_,_,_,isStealable=UnitDebuff(curTar,i);
-            local y = 0
-            if debuffType=="Magic" or debuffType=="Disease" then 
-                return true
-            end 
-        end
-        return false
-    end 
-    
-    return TMW.CNDT.Env.TableLength( TMW.CNDT.Env.FilterBy(hasDispellable))
-    
-end
+
 
 function TMW.CNDT.Env.CountByAura (thd)
     
-    local function pctLtThd(curTar) 
-        return TMW.CNDT.Env.HasMyAura(curTar,name)
-    end 
-    
-    return  TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(pctLtThd))
     
 end
 
 
-function TMW.CNDT.Env.HasMyAura(curTar,name)
+function TMW.CNDT.Env.HasMyAura(curTar,matchFunct)
     for i=1,40 do
-        local n,_,_,debuffType,_,_,unitCaster,isStealable=UnitAura(curTar,i);
-        if n then
-            
-            DEFAULT_CHAT_FRAME:AddMessage('test'..n)
-        end
-        if n==name and unitCaster== "player" then 
+        if (matchFunct(UnitAura(curTar,i))) then
             return true
-        end 
+        end
     end    
     return false
 end

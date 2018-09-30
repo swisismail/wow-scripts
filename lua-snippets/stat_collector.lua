@@ -6,18 +6,53 @@ HistoricalStats['deltaHp2'] = function() return TMW.CNDT.Env.CountDeltaHp(3000) 
 HistoricalStats['bossEtd'] = function ()
     return UnitHealth('boss1')/TMW.CNDT.Env.DeltaUnit('boss1')/HistoricalInterval
 end  
---HistoricalStats['lowCluster8'] = function() return TMW.CNDT.Env.FindClusterGt(TMW.CNDT.Env.FilterByHp(101),1,1 ) and 1 or 0 end
 
 
 local LiveStats = {}
 
-LiveStats['hpBelow95'] = function() return TMW.CNDT.Env.CountByHp(95) end
-LiveStats['hpBelow75'] = function() return TMW.CNDT.Env.CountByHp(80) end
-LiveStats['hpBelow50'] = function() return TMW.CNDT.Env.CountByHp(60) end
-LiveStats['hpBelow30'] = function() return TMW.CNDT.Env.CountByHp(40) end
-LiveStats['dispels'] = function()  return TMW.CNDT.Env.CountByDispellable() end
-LiveStats['dispels'] = function()  return TMW.CNDT.Env.CountByAura("Echo of Light") end
-LiveStats['EOL'] = function()  return TMW.CNDT.Env.CountByAura("Echo of Light") end
+local function getPctLtThd(thd)
+    return  function pctLtThd(curTar) 
+        local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
+        return (UnitExists(curTar) and pctHp < thd and true or false)
+    end
+end 
+
+
+    
+local function hasDispellable(curTar)
+    local function dispellable(n,_,_,debuffType ,_,_,_,isStealable)
+        if debuffType=="Magic" or debuffType=="Disease" then 
+                return true
+        end 
+        return false
+    end
+    return TMW.CNDT.Env.HasMyAura(curTar,dispellable)
+end 
+
+
+
+
+local function getAuraNameMatcher(name,bySelf)
+    local function matchAura(name,bySelf,n,_,_,debuffType ,_,_,_,isStealable)
+        if n==name and (bySelf and unitCaster== "player" or true) then 
+            return true
+        end 
+        return false
+    end
+    return function pctLtThd(curTar) 
+        return TMW.CNDT.Env.HasMyAura(curTar,function getAura(n,_,_,debuffType ,_,_,_,isStealable) return matchAura(name,bySelf,n,_,_,debuffType ,_,_,_,isStealable) end)
+    end 
+end
+
+    
+    
+
+LiveStats['hpBelow95'] = function() return  TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(95)) end
+LiveStats['hpBelow75'] = function() return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(80))) end
+LiveStats['hpBelow50'] = function() return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(60))) end
+LiveStats['hpBelow30'] = function() return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getPctLtThd(40))) end
+LiveStats['dispels'] = function()  return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(hasDispellable)) end
+LiveStats['EOL'] = function()  return TMW.CNDT.Env.TableLength(TMW.CNDT.Env.FilterBy(getAuraNameMatcher("Echo of Light",true))) end
 
 
 function TMW.CNDT.Env.GatherStats()
