@@ -1,5 +1,6 @@
 local dao = TMW.CNDT.Env.dao;
 local lib = TMW.CNDT.Env.lib;
+local _ = TMW.CNDT.Env._;
 local function processStatsDef(statsDef,results)
     
     
@@ -48,8 +49,8 @@ local HistoricalInterval = 5
 local HistoricalStats =    {} 
 
 --HistoricalStats['default'] = nil
-HistoricalStats['deltaHp1'] =  lib.wrap(lib.deltaGt,500)
-HistoricalStats['deltaHp2'] = lib.wrap(lib.deltaGt,3000)
+HistoricalStats['deltaHp1'] =  lib.wrap(lib.deltaGt,3000)
+--HistoricalStats['deltaHp2'] = lib.wrap(lib.deltaGt,3000)
 --HistoricalStats['bossEtd'] = function ()
 --    return UnitHealth('boss1')/lib.DeltaUnit('boss1')/HistoricalInterval
 --end
@@ -66,7 +67,10 @@ function TMW.CNDT.Env.GatherStats()
     if lib.Interval(1,HistoricalInterval) then
         processStatsDef(HistoricalStats,results)
         DEFAULT_CHAT_FRAME:AddMessage(lib.Dump(dao.StatsCache))
+        
+        
     end
+    dao.StatsCache['massprio'] = lib.groupSize()>3 and (lib.get('hpBelow50') < 1 or lib.get('hpBelow50')/lib.groupSize()*100 >= 50)
 end 
 TMW.CNDT.Env.GatherStats()
 
