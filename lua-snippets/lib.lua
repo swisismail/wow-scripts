@@ -70,12 +70,13 @@ function lib.HasAura(curTar,matchFunct)
 end
 function lib.hpLt(curTar,thd) 
     local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
-    
-    return (UnitExists(curTar) and pctHp < thd and true or false)
+    local usable, nomana = IsUsableSpell("Heal");
+    return (usable and UnitExists(curTar) and pctHp < thd and true or false)
 end 
 function lib.deltaGt(curTar,thd)
     return lib.DeltaUnit(curTar) >= thd
-end 
+end
+
 
 function lib.Interval(uid,seconds)
     dao.monitors[uid] = dao.monitors[uid] and dao.monitors[uid]+1 or 0
@@ -97,7 +98,24 @@ function  lib.DeltaUnit(unit)
     return delta
 end
 
+function lib.get(key) 
+    return dao.StatsCache and dao.StatsCache[key] or 0
+end
+
+function lib.getBool(key) 
+    return dao.StatsCache and dao.StatsCache[key] or false
+end
+
+
+function lib.groupSize()
+    return (GetNumGroupMembers()+1)
+end
+
+
+
 return lib
+
+
 
 
 
