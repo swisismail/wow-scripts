@@ -70,13 +70,18 @@ function lib.HasAura(curTar,matchFunct)
 end
 function lib.hpLt(curTar,thd) 
     local pctHp = UnitHealth(curTar)/UnitHealthMax(curTar)*100 
-    
-    return (UnitExists(curTar) and pctHp < thd and true or false)
+    local usable, nomana = IsUsableSpell("Heal");
+    return (usable and UnitExists(curTar) and pctHp < thd and true or false)
 end 
-function lib.deltaGt(curTar,thd)
-    return lib.DeltaUnit(curTar) >= thd
-end 
- function lib.Interval(uid,seconds)
+function lib.getUniqDeltaGt(key)
+    return function (curTar,thd)
+        return lib.DeltaUnit(key,curTar) >= thd
+    end
+end
+
+
+
+function lib.Interval(uid,seconds)
     dao.monitors[uid] = dao.monitors[uid] and dao.monitors[uid]+1 or 0
     if  dao.monitors[uid] >= 6*seconds  then
         dao.monitors[uid] = 0
@@ -84,15 +89,38 @@ end
     end
     return false
 end
-function  lib.DeltaUnit(unit)
-    local hp =  UnitHealth(unit)
-    if (dao.uhpm[unit] == nil) then
-        dao.uhpm[unit] = hp
+function  lib.DeltaUnit(key,unit)
+    
+    if (dao.uhpm[key] == nil) then
+        dao.uhpm[key] = {}
     end
     
-    local delta = dao.uhpm[unit]  -  hp
-    dao.uhpm[unit] = hp
+    local hp =  UnitHealth(unit)
+    if (dao.uhpm[key][unit] == nil) then
+        dao.uhpm[key][unit] = hp
+    end
+    
+    local delta = dao.uhpm[key][unit]  -  hp
+    dao.uhpm[key][unit] = hp
     
     return delta
 end
- return lib
+
+function lib.get(key) 
+    return dao.StatsCache and dao.StatsCache[key] or 0
+end
+
+function lib.getBool(key) 
+    return dao.StatsCache and dao.StatsCache[key] or false
+end
+
+
+function lib.groupSize()
+    return (GetNumGroupMembers()+1)
+end
+
+
+
+return lib
+
+
